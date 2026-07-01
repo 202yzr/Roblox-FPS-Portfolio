@@ -1,0 +1,44 @@
+local Tool = script.Parent
+local Player = game.Players.LocalPlayer
+local Mouse = Player:GetMouse()
+
+local Remote = Tool:WaitForChild("ShootEvent")
+local ReloadEvent = Tool:WaitForChild("ReloadEvent")
+
+local Config = require(Tool:WaitForChild("config"))
+
+local canShoot = true
+local ammo = Config.MAX_AMMO
+local reloading = false
+
+Tool.Activated:Connect(function()
+	if not canShoot or reloading then return end
+	if ammo <= 0 then return end
+
+	canShoot = false
+	ammo -= 1
+
+	local origin = workspace.CurrentCamera.CFrame.Position
+	local direction = (Mouse.Hit.Position - origin).Unit * Config.RANGE
+
+	Remote:FireServer(origin, direction)
+
+	task.wait(Config.FIRE_RATE)
+	canShoot = true
+end)
+
+-- reload (R)
+game:GetService("UserInputService").InputBegan:Connect(function(input, gp)
+	if gp then return end
+
+	if input.KeyCode == Enum.KeyCode.R then
+		if reloading or ammo == Config.MAX_AMMO then return end
+
+		reloading = true
+		ReloadEvent:FireServer()
+
+		task.wait(Config.RELOAD_TIME)
+		ammo = Config.MAX_AMMO
+		reloading = false
+	end
+end)

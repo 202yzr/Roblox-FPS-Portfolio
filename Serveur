@@ -1,0 +1,56 @@
+local Tool = script.Parent
+local Shoot = Tool:WaitForChild("ShootEvent")
+
+local Config = require(Tool:WaitForChild("config"))
+
+local shots = {}
+
+Shoot.OnServerEvent:Connect(function(player, origin, direction)
+
+	local char = player.Character
+	if not char then return end
+
+	-- anti cheat rate limit
+	shots[player] = shots[player] or 0
+	shots[player] += 1
+
+	task.delay(1, function()
+		shots[player] -= 1
+	end)
+
+	if shots[player] > Config.MAX_SHOTS_PER_SEC then
+		return
+	end
+
+	local params = RaycastParams.new()
+	params.FilterDescendantsInstances = {char}
+	params.FilterType = Enum.RaycastFilterType.Blacklist
+
+	local result = workspace:Raycast(origin, direction, params)
+	if not result then return end
+
+	local model = result.Instance:FindFirstAncestorOfClass("Model")
+	local humanoid = model and model:FindFirstChild("Humanoid")
+
+	if humanoid then
+		local damage = Config.DAMAGE
+
+		if result.Instance.Name == "Head" then
+			damage *= Config.HEADSHOT_MULTIPLIER
+		end
+
+		humanoid:TakeDamage(damage)
+
+		-- HIT FEEDBACK
+		local fx = Instance.new("Part")
+		fx.Size = Vector3.new(0.2,0.2,0.2)
+		fx.Position = result.Position
+		fx.Anchored = true
+		fx.CanCollide = false
+		fx.Material = Enum.Material.Neon
+		fx.Color = Color3.fromRGB(255, 80, 80)
+		fx.Parent = workspace
+
+		game:GetService("Debris"):AddItem(fx, 0.12)
+	end
+end)

@@ -1,0 +1,45 @@
+local Tool = script.Parent
+local Remote = Tool:WaitForChild("ShootEvent")
+local ReloadEvent = Tool:WaitForChild("ReloadEvent")
+
+local Config = require(Tool:WaitForChild("config"))
+
+local lastShot = {}
+
+Remote.OnServerEvent:Connect(function(player, origin, direction)
+
+	if lastShot[player] and tick() - lastShot[player] < Config.FIRE_RATE then
+		return
+	end
+	lastShot[player] = tick()
+
+	if not player.Character then return end
+
+	local params = RaycastParams.new()
+	params.FilterDescendantsInstances = {player.Character}
+	params.FilterType = Enum.RaycastFilterType.Blacklist
+
+	local result = workspace:Raycast(origin, direction, params)
+
+	if result then
+		local model = result.Instance:FindFirstAncestorOfClass("Model")
+		if model then
+			local humanoid = model:FindFirstChild("Humanoid")
+
+			if humanoid then
+				local damage = Config.DAMAGE
+
+				-- HEADSHOT
+				if result.Instance.Name == "Head" then
+					damage = damage * Config.HEADSHOT_MULTIPLIER
+				end
+
+				humanoid:TakeDamage(damage)
+			end
+		end
+	end
+end)
+
+ReloadEvent.OnServerEvent:Connect(function(player)
+	-- reload sync (optionnel)
+end)

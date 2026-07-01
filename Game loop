@@ -1,0 +1,51 @@
+local Players = game:GetService("Players")
+
+local GameState = workspace:WaitForChild("GameState")
+
+local INTERMISSION = 10
+local ROUND_TIME = 120
+
+local Maps = game.ServerStorage:WaitForChild("Maps")
+
+local function teleportAllToLobby()
+	for _, plr in pairs(Players:GetPlayers()) do
+		if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+			plr.Character.HumanoidRootPart.CFrame = workspace.LobbySpawn.CFrame
+		end
+	end
+end
+
+local function loadMap()
+	local mapList = Maps:GetChildren()
+	local chosen = mapList[math.random(1, #mapList)]:Clone()
+
+	chosen.Parent = workspace
+	chosen.Name = "CurrentMap"
+
+	return chosen
+end
+
+while true do
+
+	-- LOBBY
+	GameState.Value = "Lobby"
+	teleportAllToLobby()
+
+	task.wait(INTERMISSION)
+
+	-- START GAME
+	GameState.Value = "InGame"
+
+	local map = loadMap()
+
+	task.wait(ROUND_TIME)
+
+	-- END GAME
+	GameState.Value = "Intermission"
+
+	if workspace:FindFirstChild("CurrentMap") then
+		workspace.CurrentMap:Destroy()
+	end
+
+	task.wait(5)
+end

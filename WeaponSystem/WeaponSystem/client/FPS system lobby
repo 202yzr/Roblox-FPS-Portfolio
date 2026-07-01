@@ -1,0 +1,7 @@
+local GameState = workspace:WaitForChild("GameState")
+
+game:GetService("RunService").RenderStepped:Connect(function()
+	if GameState.Value ~= "InGame" then
+		-- bloque tir
+	end
+end)

@@ -1,0 +1,8 @@
+return {
+	DAMAGE = 25,
+	HEADSHOT_MULTIPLIER = 2,
+	RANGE = 500,
+	FIRE_RATE = 0.15,
+	MAX_AMMO = 30,
+	RELOAD_TIME = 2
+}

@@ -1,0 +1,4 @@
+local function getRandomSpawn(map)
+	local spawns = map.Spawns:GetChildren()
+	return spawns[math.random(1, #spawns)]
+end
